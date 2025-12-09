@@ -12,6 +12,3 @@ ALLOWED_HOSTS = ['*']
 > python manage.py runserver 0.0.0.0:8000
 4. 동료 브라우저 주소 공유
 > http://(ipv4주소/서버연사람거):8000
-
-
-v_2.0.0
