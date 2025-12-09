@@ -8,6 +8,3 @@ class AuctionAdmin(admin.ModelAdmin):
     list_filter = ('status',) # 상태별로 필터링해서 볼 수 있게 함
 
 admin.site.register(Auction, AuctionAdmin)
-
-if start_price > seller:
-    
