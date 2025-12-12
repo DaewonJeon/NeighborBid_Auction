@@ -9,33 +9,88 @@ from wallet.models import Wallet, Transaction
 from .models import Bid
 from .forms import AuctionForm, CommentForm # 파일 맨 위에 이거 꼭 추가하세요!
 
+
+# [헬퍼 함수] 특정 지역의 모든 하위 지역(자식, 손자 등) ID를 재귀적으로 찾기
+def get_all_descendants(region):
+    descendants = []
+    children = region.sub_regions.all()
+    for child in children:
+        descendants.append(child)
+        # 재귀 호출: 자식의 자식들을 계속 찾아옴
+        descendants.extend(get_all_descendants(child))
+    return descendants
+
 # 경매 목록 조회
+# auctions/views.py
+from django.db.models import Q
+from common.models import Region, Category # 모델 임포트 필수!
+
+# 경매 목록 조회 + 필터링(지역/카테고리/가격)
 def auction_list(request):
-    # 1. 기본적으로 진행중/대기중인 경매만 가져옴
+    # 1. 기본: '진행중'이거나 '대기중'인 경매만 가져옴
     auctions = Auction.objects.filter(status__in=['ACTIVE', 'WAITING'])
     
-    # 2. 검색어('q')가 있으면 필터링
+    # === [필터 1] 지역 (Region) ===
+    region_id = request.GET.get('region')
+    selected_region = None
+    
+    if region_id:
+        try:
+            selected_region = Region.objects.get(id=region_id)
+            
+            # [수정됨] 직계 자식뿐만 아니라 '모든 하위 지역(손자 포함)'을 가져오도록 변경
+            # 예: '서울' 선택 -> '서울' + '영등포구' + '신길동' + '대림동' ... 모두 포함
+            regions_to_check = [selected_region] + get_all_descendants(selected_region)
+            
+            auctions = auctions.filter(region__in=regions_to_check)
+        except Region.DoesNotExist:
+            pass
+
+    # === [필터 2] 카테고리 (Category) ===
+    category_slug = request.GET.get('category')
+    if category_slug:
+        auctions = auctions.filter(category__slug=category_slug)
+
+    # === [필터 3] 가격 범위 (Price) ===
+    min_price = request.GET.get('min_price')
+    max_price = request.GET.get('max_price')
+    if min_price:
+        auctions = auctions.filter(current_price__gte=min_price)
+    if max_price:
+        auctions = auctions.filter(current_price__lte=max_price)
+
+    # === [검색 및 정렬] ===
     query = request.GET.get('q')
     if query:
-        # 제목(title)에 검색어가 포함되어 있으면 가져옴 (icontains는 대소문자 무시)
         auctions = auctions.filter(title__icontains=query)
 
-    # 3. 정렬 순서('sort') 처리
-    sort = request.GET.get('sort', 'recent') # 기본값은 최신순
-    
-    if sort == 'price_asc': # 가격 낮은순
+    sort = request.GET.get('sort', 'recent')
+    if sort == 'price_asc':
         auctions = auctions.order_by('current_price')
-    elif sort == 'price_desc': # 가격 높은순
+    elif sort == 'price_desc':
         auctions = auctions.order_by('-current_price')
-    elif sort == 'end_soon': # 마감 임박순
+    elif sort == 'end_soon':
         auctions = auctions.order_by('end_time')
-    else: # recent (최신순)
+    else:
         auctions = auctions.order_by('-created_at')
 
-    return render(request, 'auctions/auction_list.html', {
+    # [수정됨] 사이드바 데이터 준비
+    # 기존: depth__lte=2 (구 까지만 보여줌) -> 문제: 동이 안 보임
+    # 변경: 모든 지역을 다 보여주거나, 로직을 개선
+    # 지금은 MVP 단계이므로 '전체 지역'을 가져오되, 보기 좋게 정렬합니다.
+    # (나중에 데이터가 많아지면 Ajax로 펼치기 기능을 구현해야 합니다)
+    all_regions = Region.objects.all().order_by('depth', 'parent__id', 'name')
+    
+    all_categories = Category.objects.all()
+
+    context = {
         'auctions': auctions,
-        'sort': sort # 현재 어떤 정렬인지 템플릿에 알려줌
-    })
+        'all_regions': all_regions,
+        'all_categories': all_categories,
+        'selected_region': selected_region,
+        'sort': sort,
+    }
+    return render(request, 'auctions/auction_list.html', context)
 
 # 상세 조회 및 입찰하기
 @login_required # 로그인한 사람만 볼 수 있음
@@ -117,7 +172,11 @@ def auction_create(request):
             if auction.start_time >= auction.end_time:
                 messages.error(request, "종료 시간은 시작 시간보다 뒤여야 합니다.")
                 return render(request, 'auctions/auction_form.html', {'form': form})
-                
+            
+            # 판매자의 지역 정보를 경매 상품에 자동 입력
+            if request.user.region:
+                auction.region = request.user.region
+
             auction.save() # 진짜 저장
             messages.success(request, "경매가 성공적으로 등록되었습니다! 🎉")
             return redirect('auction_list')
