@@ -30,11 +30,6 @@ def place_bid(auction_id, user, amount):
         if amount < min_bid_price:
             raise ValueError(f"최소 {min_bid_price}원 이상 입찰해야 합니다.")
 
-        # 입찰자의 지갑 확인
-        wallet = Wallet.objects.select_for_update().get(user=user)
-        if wallet.balance < amount:
-            raise ValueError("잔액이 부족합니다.")
-
         # ============================================
         # 여기서부터 진짜 돈 처리 (가장 중요!)
         # ============================================
@@ -57,7 +52,14 @@ def place_bid(auction_id, user, amount):
                     amount=last_bid.amount,
                     transaction_type='BID_REFUND',
                     description=f"경매({auction.title}) 상위 입찰 발생으로 환불"
-                )
+                )    
+
+        # 입찰자의 지갑 확인
+        wallet = Wallet.objects.select_for_update().get(user=user)
+        if wallet.balance < amount:
+            raise ValueError("잔액이 부족합니다.")
+
+        
 
         # 3. 내 돈 잠그기 (지갑에서 차감 -> 잠금으로 이동)
         wallet.balance -= amount
@@ -154,7 +156,7 @@ def buy_now(auction_id, buyer):
         # 1. 기본 체크
         if auction.status != 'ACTIVE':
             raise ValueError("진행 중인 경매가 아닙니다.")
-        # 수정 사항 경매(입찰)가 시작되면 즉시 구매 불가능
+        # 수정 사항 경매(입찰)가 시작되면 즉시 구매 불가능<보류중>
         #if auction.bids.exists():
             #raise ValueError("이미 입찰이 진행된 경매는 즉시 구매가 불가능합니다.")
         if not auction.instant_price:
