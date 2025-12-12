@@ -8,7 +8,7 @@ class AuctionForm(forms.ModelForm):
         model = Auction
         # 사용자가 직접 입력해야 하는 필드만 골라줍니다.
         # (판매자, 현재가, 상태 등은 시스템이 알아서 채웁니다)
-        fields = ['title', 'description', 'image', 'start_price','instant_price', 'start_time', 'end_time']
+        fields = ['title', 'description', 'image','category', 'start_price','instant_price', 'start_time', 'end_time']
         
         # 디자인(Bootstrap)을 입히기 위한 설정
         widgets = {
@@ -19,6 +19,7 @@ class AuctionForm(forms.ModelForm):
             'start_time': forms.DateTimeInput(attrs={'class': 'form-control', 'type': 'datetime-local'}),
             'end_time': forms.DateTimeInput(attrs={'class': 'form-control', 'type': 'datetime-local'}),
             'instant_price': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': '비워두면 경매로만 진행'}),
+            'category': forms.Select(attrs={'class': 'form-select'}), # 디자인 적용
         }
         # 화면에 보여줄 이름표
         labels = {
@@ -29,6 +30,7 @@ class AuctionForm(forms.ModelForm):
             'start_time': '경매 시작 시간',
             'end_time': '경매 종료 시간',
             'instant_price': '즉시 구매가 (선택사항)',
+            'category': '물건 카테고리',
         }
 
 

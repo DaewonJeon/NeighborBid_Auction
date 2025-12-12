@@ -2,6 +2,7 @@
 
 from django.db import models
 from django.conf import settings
+from common.models import Region, Category
 
 class Auction(models.Model):
     # 판매자 (User와 연결)
@@ -33,6 +34,11 @@ class Auction(models.Model):
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='WAITING')
     
     created_at = models.DateTimeField(auto_now_add=True)
+    # [추가] 판매 지역 (기본적으로 판매자의 지역을 따라감)
+    region = models.ForeignKey(Region, on_delete=models.SET_NULL, null=True)
+    
+    # [추가] 카테고리
+    category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True)
 
     def __str__(self):
         return f"[{self.status}] {self.title}"

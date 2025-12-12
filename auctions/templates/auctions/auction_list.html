@@ -1,45 +1,109 @@
 {% extends 'auctions/base.html' %}
 
 {% block content %}
-<h2>🔥 진행중인 경매</h2>
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <div>
-        {% if request.GET.q %}
-            <span class="text-muted">"{{ request.GET.q }}" 검색 결과</span>
-            <a href="{% url 'auction_list' %}" class="btn btn-sm btn-outline-secondary ms-2">전체보기</a>
-        {% endif %}
-    </div>
-    <div class="btn-group">
-        <a href="?sort=recent&q={{ request.GET.q }}" class="btn btn-sm btn-outline-dark {% if sort == 'recent' %}active{% endif %}">최신순</a>
-        <a href="?sort=end_soon&q={{ request.GET.q }}" class="btn btn-sm btn-outline-dark {% if sort == 'end_soon' %}active{% endif %}">마감 임박순</a>
-        <a href="?sort=price_asc&q={{ request.GET.q }}" class="btn btn-sm btn-outline-dark {% if sort == 'price_asc' %}active{% endif %}">가격 낮은순</a>
-        <a href="?sort=price_desc&q={{ request.GET.q }}" class="btn btn-sm btn-outline-dark {% if sort == 'price_desc' %}active{% endif %}">가격 높은순</a>
-    </div>
-</div>
-<div class="row mt-4">
-    
-<div class="row mt-4">
-    {% for auction in auctions %}
-    <div class="col-md-4 mb-4">
-        <div class="card h-100">
-            {% if auction.image %}
-                <img src="{{ auction.image.url }}" class="card-img-top" alt="{{ auction.title }}" style="height: 200px; object-fit: cover;">
-            {% else %}
-                <div class="bg-secondary text-white d-flex align-items-center justify-content-center" style="height: 200px;">이미지 없음</div>
-            {% endif %}
-            <div class="card-body">
-                <h5 class="card-title">{{ auction.title }}</h5>
-                <p class="card-text text-muted">{{ auction.description|truncatechars:50 }}</p>
-                <div class="d-flex justify-content-between align-items-center">
-                    <span class="badge bg-primary">{{ auction.get_status_display }}</span>
-                    <strong class="text-danger">현재가: {{ auction.current_price }}원</strong>
-                </div>
+<div class="row">
+    <div class="col-md-3">
+        <div class="card shadow-sm p-3 mb-4">
+            <h5 class="fw-bold mb-3">🔍 필터</h5>
+            
+            <h6 class="fw-bold mt-2">🗺️ 지역</h6>
+            <div class="list-group list-group-flush mb-3 scrollable-menu" style="max-height: 300px; overflow-y: auto;">
+                <a href="?{% if request.GET.category %}category={{ request.GET.category }}&{% endif %}sort={{ sort }}" 
+                   class="list-group-item list-group-item-action {% if not selected_region %}active{% endif %}">
+                   전체 지역
+                </a>
+                {% for region in all_regions %}
+                    <a href="?region={{ region.id }}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}&sort={{ sort }}" 
+                       class="list-group-item list-group-item-action {% if selected_region.id == region.id %}active{% endif %}"
+                       style="padding-left: {{ region.depth|add:'-1'|add:'1' }}rem;"> 
+                       {% if region.depth > 1 %}└ {% endif %}
+                       {{ region.name }}
+                    </a>
+                {% endfor %}
             </div>
-            <div class="card-footer">
-                <a href="{% url 'auction_detail' auction.id %}" class="btn btn-primary w-100">입찰하러 가기</a>
+
+            <h6 class="fw-bold mt-2">📦 카테고리</h6>
+            <div class="list-group list-group-flush mb-3">
+                <a href="?{% if request.GET.region %}region={{ request.GET.region }}&{% endif %}sort={{ sort }}" 
+                   class="list-group-item list-group-item-action {% if not request.GET.category %}active{% endif %}">
+                   전체 카테고리
+                </a>
+                {% for cat in all_categories %}
+                    <a href="?category={{ cat.slug }}{% if request.GET.region %}&region={{ request.GET.region }}{% endif %}&sort={{ sort }}" 
+                       class="list-group-item list-group-item-action {% if request.GET.category == cat.slug %}active{% endif %}">
+                       {{ cat.name }}
+                    </a>
+                {% endfor %}
+            </div>
+
+            <h6 class="fw-bold mt-2">💰 가격 범위</h6>
+            <form method="get">
+                {% if request.GET.region %}<input type="hidden" name="region" value="{{ request.GET.region }}">{% endif %}
+                {% if request.GET.category %}<input type="hidden" name="category" value="{{ request.GET.category }}">{% endif %}
+                <input type="hidden" name="sort" value="{{ sort }}">
+
+                <div class="input-group mb-2">
+                    <input type="number" name="min_price" class="form-control" placeholder="최소" value="{{ request.GET.min_price }}">
+                </div>
+                <div class="input-group mb-2">
+                    <input type="number" name="max_price" class="form-control" placeholder="최대" value="{{ request.GET.max_price }}">
+                </div>
+                <button type="submit" class="btn btn-primary w-100 btn-sm">가격 적용</button>
+            </form>
+            <div class="mt-2 text-end">
+                <a href="{% url 'auction_list' %}" class="text-muted small text-decoration-none">🔄 필터 초기화</a>
             </div>
         </div>
     </div>
-    {% endfor %}
+
+    <div class="col-md-9">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h3>
+                {% if selected_region %}
+                    {{ selected_region.name }}
+                {% else %}
+                    전체 지역
+                {% endif %}
+                <span class="text-muted fs-6">중고거래</span>
+            </h3>
+            
+            <div class="btn-group">
+                <a href="?sort=recent{% if request.GET.region %}&region={{ request.GET.region }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}" class="btn btn-sm btn-outline-dark {% if sort == 'recent' %}active{% endif %}">최신순</a>
+                <a href="?sort=end_soon{% if request.GET.region %}&region={{ request.GET.region }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}" class="btn btn-sm btn-outline-dark {% if sort == 'end_soon' %}active{% endif %}">마감순</a>
+                <a href="?sort=price_asc{% if request.GET.region %}&region={{ request.GET.region }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}" class="btn btn-sm btn-outline-dark {% if sort == 'price_asc' %}active{% endif %}">저가순</a>
+            </div>
+        </div>
+
+        <div class="row">
+            {% for auction in auctions %}
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 shadow-sm hover-shadow">
+                    <div class="position-relative">
+                        {% if auction.image %}
+                            <img src="{{ auction.image.url }}" class="card-img-top" alt="{{ auction.title }}" style="height: 200px; object-fit: cover;">
+                        {% else %}
+                            <div class="bg-secondary text-white d-flex align-items-center justify-content-center" style="height: 200px;">이미지 없음</div>
+                        {% endif %}
+                        <span class="position-absolute top-0 end-0 badge bg-dark m-2">{{ auction.get_status_display }}</span>
+                    </div>
+                    <div class="card-body">
+                        <h5 class="card-title text-truncate">{{ auction.title }}</h5>
+                        <p class="card-text text-danger fw-bold">{{ auction.current_price }}원</p>
+                        <div class="d-flex justify-content-between small text-muted">
+                            <span>📍 {{ auction.region.name|default:"지역없음" }}</span>
+                            <span>⏱ {{ auction.end_time|timeuntil }} 남음</span>
+                        </div>
+                    </div>
+                    <a href="{% url 'auction_detail' auction.id %}" class="stretched-link"></a>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12 py-5 text-center">
+                <h4 class="text-muted">조건에 맞는 상품이 없습니다. 텅! 🗑️</h4>
+                <a href="{% url 'auction_list' %}" class="btn btn-outline-primary mt-3">전체 보기</a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
 </div>
 {% endblock %}
