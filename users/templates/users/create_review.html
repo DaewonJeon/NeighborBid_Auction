@@ -1,0 +1,32 @@
+{% extends 'auctions/base.html' %}
+
+{% block content %}
+<div class="container mt-5" style="max-width: 600px;">
+    <div class="card shadow-sm">
+        <div class="card-header bg-warning text-dark fw-bold">
+            ✍️ 거래 후기 작성
+        </div>
+        <div class="card-body">
+            <h5 class="card-title text-center mb-4">
+                '{{ auction.title }}'<br>
+                <small class="text-muted">상품은 마음에 드셨나요?</small>
+            </h5>
+            
+            <form method="post">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label class="form-label fw-bold">별점</label>
+                    {{ form.rating }}
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">내용</label>
+                    {{ form.content }}
+                </div>
+                <div class="d-grid">
+                    <button type="submit" class="btn btn-dark">후기 등록하기</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

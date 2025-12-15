@@ -11,4 +11,5 @@ urlpatterns = [
     path('login/', auth_views.LoginView.as_view(template_name='users/login.html'), name='login'),
     path('logout/', auth_views.LogoutView.as_view(), name='logout'),
     path('seller/<int:seller_id>/', views.seller_profile, name='seller_profile'),
+    path('review/<int:auction_id>/', views.create_review, name='create_review'),
 ]

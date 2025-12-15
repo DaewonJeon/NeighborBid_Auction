@@ -74,6 +74,19 @@
                     </div>
                 {% endif %}
             </div>
+            {% with highest_bid=auction.bids.last %}
+                {% if user == highest_bid.bidder and auction.status != 'ACTIVE' %}
+                    <div class="card border-success mb-4">
+                        <div class="card-body text-center">
+                            <h5 class="text-success fw-bold">🎉 낙찰을 축하합니다!</h5>
+                            <p class="small text-muted">거래가 완료되었다면 판매자를 위해 후기를 남겨주세요.</p>
+                            <a href="{% url 'create_review' auction.id %}" class="btn btn-success">
+                                ✍️ 거래 후기 남기기
+                            </a>
+                        </div>
+                    </div>
+                {% endif %}
+            {% endwith %}
 
             <div class="card mb-4 bg-light border-0">
                 <div class="card-body">

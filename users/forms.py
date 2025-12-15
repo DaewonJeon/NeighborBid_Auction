@@ -2,7 +2,7 @@
 
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
-from .models import User
+from .models import User, Review
 
 class RegisterForm(UserCreationForm):
     class Meta:
@@ -22,4 +22,17 @@ class RegisterForm(UserCreationForm):
             'username': '아이디',
             'email': '이메일',
             'nickname': '닉네임',
+        }
+        
+class ReviewForm(forms.ModelForm):
+    class Meta:
+        model = Review
+        fields = ['rating', 'content']
+        labels = {
+            'rating': '별점',
+            'content': '후기 내용',
+        }
+        widgets = {
+            'rating': forms.Select(attrs={'class': 'form-select'}),
+            'content': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': '친절한 거래 후기를 남겨주세요.'}),
         }
