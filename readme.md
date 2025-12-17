@@ -59,26 +59,26 @@
  보증금 예치: 경매 올릴 때 보증금을 걸고, 취소 시 차감하는 정책.
  어뷰징 탐지: 이상한 패턴의 입찰이나 자전거래 감시.
 
- # 프로젝트 폴더 안에서
+ #### 프로젝트 폴더 안에서
 python -m venv venv
 
-# 윈도우 기준 활성화
+#### 윈도우 기준 활성화
 venv\Scripts\activate
-# (맥/리눅스는 source venv/bin/activate)
-# requirements.txt에 적힌 대로 설치
+#### (맥/리눅스는 source venv/bin/activate)
+#### requirements.txt에 적힌 대로 설치
 pip install -r requirements.txt
-# 우리가 만든 설계도(migrations 파일)를 보고 DB 생성
+
+### 우리가 만든 설계도(migrations 파일)를 보고 DB 생성
 python manage.py migrate
 python manage.py createsuperuser
 python manage.py runserver
 
-#도커
-docker-compose exec web python manage.py migrate
+#### 도커
 
 하려는 작업,기존 명령어 (Local),새로운 명령어 (Docker)
-서버 켜기,python manage.py runserver,docker-compose up
-서버 켜기 (새로 빌드),-,docker-compose up --build  (패키지 설치하거나 설정 바꿨을 때)
-DB 마이그레이션 생성,python manage.py makemigrations,docker-compose exec web python manage.py makemigrations
-DB 마이그레이션 적용,python manage.py migrate,docker-compose exec web python manage.py migrate
-관리자 계정 생성,python manage.py createsuperuser,docker-compose exec web python manage.py createsuperuser
-셸(Shell) 접속,python manage.py shell,docker-compose exec web python manage.py shell
+서버 켜기,```python manage.py runserver```, ```docker-compose up```
+서버 켜기 (새로 빌드),-,```docker-compose up --build```  (패키지 설치하거나 설정 바꿨을 때)
+DB 마이그레이션 생성,```python manage.py makemigrations```, ```docker-compose exec web python manage.py makemigrations```
+DB 마이그레이션 적용,```python manage.py migrate```, ```docker-compose exec web python manage.py migrate```
+관리자 계정 생성,```python manage.py createsuperuser```, ```docker-compose exec web python manage.py createsuperuser```
+셸(Shell) 접속,```python manage.py shell```, ```docker-compose exec web python manage.py shell```
