@@ -8,7 +8,7 @@ from .services import place_bid # 아까 만든 입찰 로직 가져오기
 from wallet.models import Wallet, Transaction 
 from .models import Bid
 from .forms import AuctionForm, CommentForm # 파일 맨 위에 이거 꼭 추가하세요!
-
+from django.db.models import Q # (이미 있으면 패스)
 
 # [헬퍼 함수] 특정 지역의 모든 하위 지역(자식, 손자 등) ID를 재귀적으로 찾기
 def get_all_descendants(region):
@@ -42,7 +42,9 @@ def auction_list(request):
             # 예: '서울' 선택 -> '서울' + '영등포구' + '신길동' + '대림동' ... 모두 포함
             regions_to_check = [selected_region] + get_all_descendants(selected_region)
             
-            auctions = auctions.filter(region__in=regions_to_check)
+            auctions = auctions.filter(
+                Q(region__in=regions_to_check) | Q(is_national=True)
+            )
         except Region.DoesNotExist:
             pass
 

@@ -24,8 +24,12 @@
             </div>
 
         <div class="col-md-5">
-            <h2 class="fw-bold mb-3" style="font-size: 1.5rem;">{{ auction.title }}</h2>
-            
+            <h2 class="fw-bold mb-3" style="font-size: 1.5rem;">
+                {% if auction.is_national %}
+                    <span class="badge bg-danger fs-6 align-middle me-1">⚡ 전국</span>
+                {% endif %}
+                {{ auction.title }}
+            </h2> 
             <div class="mb-4 pb-3 border-bottom">
                 <span class="text-muted small">현재가</span>
                 <div class="d-flex align-items-end">

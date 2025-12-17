@@ -84,6 +84,9 @@
                         {% else %}
                             <div class="bg-secondary text-white d-flex align-items-center justify-content-center" style="height: 200px;">이미지 없음</div>
                         {% endif %}
+                        {% if auction.is_national %}
+                            <span class="position-absolute top-0 start-0 badge bg-danger m-2 shadow">⚡ 전국 실시간</span>
+                        {% endif %}
                         <span class="position-absolute top-0 end-0 badge bg-dark m-2">{{ auction.get_status_display }}</span>
                     </div>
                     <div class="card-body">
