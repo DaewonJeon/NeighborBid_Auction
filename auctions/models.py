@@ -36,6 +36,11 @@ class Auction(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     # [추가] 판매 지역 (기본적으로 판매자의 지역을 따라감)
     region = models.ForeignKey(Region, on_delete=models.SET_NULL, null=True)
+
+    # [추가] 전국 실시간 경매 여부
+    # True: 웹소켓+Redis 사용 (전국 노출)
+    # False: 일반 DB 트랜잭션 사용 (지역 한정)
+    is_national = models.BooleanField(default=False, verbose_name="전국 실시간 경매")
     
     # [추가] 카테고리
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True)
