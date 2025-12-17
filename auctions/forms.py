@@ -9,7 +9,7 @@ class AuctionForm(forms.ModelForm):
     class Meta:
         model = Auction
         # ▼▼▼ 'condition', 'shipping_payer' 필드 추가 ▼▼▼
-        fields = ['title', 'description', 'category', 'condition', 'shipping_payer', 'image', 'start_price', 'instant_price', 'start_time', 'end_time']
+        fields = ['title', 'description', 'category', 'condition', 'shipping_payer', 'image', 'start_price', 'instant_price', 'start_time', 'end_time','is_national']
         
         widgets = {
             'title': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '상품명을 입력하세요'}),
@@ -22,6 +22,8 @@ class AuctionForm(forms.ModelForm):
             'instant_price': forms.NumberInput(attrs={'class': 'form-control', 'min': 100}),
             'start_time': forms.DateTimeInput(attrs={'class': 'form-control', 'type': 'datetime-local'}),
             'end_time': forms.DateTimeInput(attrs={'class': 'form-control', 'type': 'datetime-local'}),
+            # 2. 체크박스 위젯 추가 (Bootstrap 클래스 적용)
+            'is_national': forms.CheckboxInput(attrs={'class': 'form-check-input', 'style': 'width: 20px; height: 20px;'}),
         }
         labels = {
             'title': '상품명',
@@ -34,6 +36,8 @@ class AuctionForm(forms.ModelForm):
             'instant_price': '即 즉시 구매가 (선택)',
             'start_time': '경매 시작 시간',
             'end_time': '경매 종료 시간',
+            # 3. 라벨 이름 설정
+            'is_national': '⚡ 전국 실시간 경매로 등록 (체크 시 전국 노출)',
         }
 
 
